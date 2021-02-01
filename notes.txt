@@ -1,0 +1,15 @@
+for copy:
+
+docker cp <path to file on local system> container_name:<path inside container>
+
+docker cp container_name:<path inside container> <path on local system to copy to>
+
+===========================================
+
+naming/tagging images and containers:
+
+to run a container with a specific name -
+docker run -p 3000:80 -d --rm --name some-name 25dk34kd003k
+
+to name/tag an image -
+docker build ./Dockerfile -t name:tag
