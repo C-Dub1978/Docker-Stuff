@@ -13,3 +13,17 @@ docker run -p 3000:80 -d --rm --name some-name 25dk34kd003k
 
 to name/tag an image -
 docker build ./Dockerfile -t name:tag
+
+===========================================
+
+dockerhub: (first make sure to login with docker login)
+
+docker push imageName
+docker pull imageName
+
+to tag -
+docker tag imageName:version myDockerRepoName/imageProjectName
+
+once tagged, then we can push (real example) -
+docker tag myNodeImage:10.0.1 transientcw/node-project
+docker push transientcw/node-project
