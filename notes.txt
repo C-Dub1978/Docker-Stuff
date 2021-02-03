@@ -27,3 +27,52 @@ docker tag imageName:version myDockerRepoName/imageProjectName
 once tagged, then we can push (real example) -
 docker tag myNodeImage:10.0.1 transientcw/node-project
 docker push transientcw/node-project
+
+============================================
+
+volumes:
+
+A docker volume is a host file system drive/folder that is mounted ("made available/mapped") into
+containers.
+
+You can easily mount localhost:home/myVolume ------> /app/persistentStoreData, and now when the container writes data into its
+/app/persistenStoreData directory, that data will persist even when the container is stopped and removed, since containers are epehmeral.
+This is how we will eventually create an Oracle DB container which will map to the host file system volume.
+
+Volumes are different from the COPY command, in that COPY will take a one-time snapshot of the files/folders you are copying, and will
+write them into the image. It's a single serving command, whereas volumes are persistent. Also, changes in the volume mount on the host
+system will reflect instantly into the containers file system mapped volume directory, and vice versa
+
+When you add a volume to a container, that volume will persist even when you stop/remove the container and start a new one.
+
+To add a volume to an image -
+VOLUME ["/path-to-container-volume-dir"]
+
+There are 2 types of external data storages
+volumes (managed by docker), and bind mounts (managed by you)
+Volumes can be anonymous (like the example a few lines up, its managed by docker and the volume is at some unknown location - run docker volume ls to find the random name), or
+volumes can be named volumes.
+
+If you use an anonymous volume, docker will create and manage it during the lifecycle of the container - once the container shuts down, the anonymous volume is deleted.
+
+With named volumes, you are able to define a specific name for your volume, and when the container shuts down, docker does NOT auto delete the volume.
+
+Named volumes are perfect for data that needs to persist, but that doesn't need to be edited directly (even though the volume is named and saved after container shutdown, we still
+cant access the named volume that docker creates and manages and keeps after a container shutdown).
+
+When you want to run a named volume, you do not add the VOLUME keyword to your Dockerfile like above, you actually configure it during docker container run....
+docker run -v userDefinedVolumeName:/path/to/container/directory
+
+...............
+
+When you need to persist data, and you need to potentially edit it directly on the host file system .... BIND MOUNTS TO THE RESCUE!
+A perfect case is when you are building or editing an application that you have running in a container. If you wanted to add some html, you
+would have to rebuild the image on every single change of code.... With a bind mount, you can update realtime code changes.
+
+With bind mounts, the developer has total control of the mappings of the persistent directories in the host and container fs.
+
+Bind mounts are set up in the run command because they are specific to containers, not images
+docker run -v /absolute/path/to/host/system/mount/folder:/path-to-container-folder-to-map
+
+
+
