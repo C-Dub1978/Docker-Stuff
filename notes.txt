@@ -71,8 +71,71 @@ would have to rebuild the image on every single change of code.... With a bind m
 
 With bind mounts, the developer has total control of the mappings of the persistent directories in the host and container fs.
 
-Bind mounts are set up in the run command because they are specific to containers, not images
-docker run -v /absolute/path/to/host/system/mount/folder:/path-to-container-folder-to-map
+Bind mounts are set up in the run command because they are specific to containers, not images -
+
+docker run -v "/absolute/path/to/host/system/mount/folder:/path-to-container-folder-to-map"       ** (notice the paths are wrapped in quotes)
+
+now keep in mind - in the example app from the tutorial, we are copying package.json and running an npm install. Without running npm install locally inside our host system, if we decide to
+bind mount the ENTIRE local app directory, rather than just the local app/public directory (the directory where the html code lives), essentially our local file system will overwrite the entire contents of the containers app directory - which in turn will completely delete the node_modules directory, and will throw an error because the container cannot find express/node 
+to spin its app up.... in order to tell docker to IGNORE a specific directory when we bind mount the entire app dir, we need to add one more anonymous volume...
+For bind mounting the entire app/ directory into the container, and adding the anonymous volume to ignore the node_modules dir, use:
+
+docker run -d --rm -p 3000:80 --name feedback-app -v feedback:/app/feedback -v "/Home/some/local/path/app:/app" -v /app/node_modules node-feedback-img
+
+The above command sets up 2 anonymous volumes and a bind mount (the first -v is an anonymous volume persisting the feedback dir to /app/feedback in the container, the second -v is a bind mount which is mounting our entire local /app folder, and the third is another anonymous volume that is keeping the image structure of the /node_modules dir inside the container which already has an npm install
+
+If you just wanted to bind mount the application code in /local/app/public dir, you could use
+docker run -d --rm -p 3000:80 --name feedback-app -v feedback:/app/feedback -v "/Home/some/local/path/app/public:/app/public" node-feedback-img
+
+The first -v is an anonymous volume which persists the /app/feedback dir in the container to our local feedback dir, and the second -v is a bind mount that overwrites JUST the public dir which contains application code, thus keeping the structure of the node_modules dir inside the container intact
+
+.......................
+
+read-only volumes: 
+
+Used for when we do NOT want the container itself to be able to change any files/folders on the host system, but when the host system should be able to change the files and reflect those changes in the container. By default, docker volumes are read/write. This is very simple, after you docker run and define a volume, you simply append the volume definition with :ro
+
+docker run -p 3000:80 --name some-container -v "/host/file/path:/app:ro" -v anonVolume:/app/volume:ro image-name
+
+This simply enforces that docker cannot make changes to the volume and its subfolder
+
+................
+
+notes:
+
+you can also use docker volume create TEST-VOLUME for manually creating docker volumes (if you don't create a volume manually, docker will create it for you with named volumes)
+
+to use, docker run -v TEST-VOLUME:/app/feedback
+
+
+summary:
+
+anonymous volume: -v /app/container-folder (does not survive container removal)
+named volume: -v myName:/app/container-folder (does survive container removal)
+bind mount: -v "/host/system/path:/container/path" (does survive container removal)
+
+==============================================================
+
+.dockerignore
+
+You can specifically omit stuff just like a .gitignore
+
+for instance node_modules (in this case, it would be for the purpose of IF there was a node_modules somehow on localhost, we would ensure it does not get copied over and be stale)
+
+=============================================================
+
+Arguments and environment variables:
+
+Arguments are available inside the Dockerfile, not accessible in CMD or other application code. They are set in the image build, i.e. docker build --build-Arguments
+Environment variables, are available both in the Dockerfile and inside application code at runtime. You set them with --env with docker run, or in ENV inside Dockerfile
+
+Environment variable example - for our node app - inside app.listen(80), we have hardcoded 80 in the app. If you want to pass an environment variable through docker, we can instead access app.listen(process.env.PORT) (where PORT is the actual environment variable name - now we can pass a variable called PORT with any value when we run the container, either in the Dockerfile with ENV or when running the container via --env VARIABLENAME=VALUE (PORT=80)      ----- keep in mind, env variables passed in docker run will override Dockerfile
+
+
+
+
+
+
 
 
 
