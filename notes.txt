@@ -157,8 +157,36 @@ use host.docker.internal to contact the host machine from a container
 use container name for container-to-container comms, docker will know how to resolve name to ip dns, as long as any containers communicating
 are on the same docker network. If not using the same network, you can use specific container ip addresses (not elegant).
 
+Lastly, when creating a docker network, you can also specify the driver to use docker network create --driver <driverName> mynetwork. Different
+network adapters can be used for networking features. Consult the docs, although most of the time youll use bridge driver, which is default.
 
+=======================================================
 
+Multi Container Apps
 
+REQUIREMENTS for demo:
+Dockerize the back end, mid tier, and react front end
+0. create network + apply to containers
+1. database data should persist
+2. limit database access with a specific username and password (think about args/env variables for security)
+3. data in the mid tier must persist (not the goals, the goals are persisted in the database) - persist the log files for the node mid tier
+4. mid tier should have live source code, use a bind mount as well as nodemon for realtime node server code updates
+5. for the front end, we need to be able to have live updates for source code
 
+SOLUTIONS for demo:
+0. create network docker network create multi-net
+1. create a bind mount for the db container, pointing to the source code /persistence/mongo directory, using:
+  docker run -d --rm --name mongo-container -v "$(pwd)/persistence/mongo:/data/db" (its important to run the docker run command from the app src
+  directory, or the path to local bind mount will fail)
+2. when running the mongo container, in order to create a root user for auth, use
+  docker run -d --rm --name mongo-container -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password mongo
 
+1/2:
+docker run -d --rm \
+  --name mongo-cont \
+  -v "$PWD/persistence/mongo:/data/db" \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=password \
+  --network multi-net mongo
+
+3. set up a named volume pointing to the /mid-tier/logs directory
