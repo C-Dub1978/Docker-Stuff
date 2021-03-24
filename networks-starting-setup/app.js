@@ -68,13 +68,14 @@ app.get('/people', async (req, res) => {
 });
 
 mongoose.connect(
-  'mongodb://localhost:27017/swfavorites',
+  'mongodb://mongodb:27017/swfavorites',
   { useNewUrlParser: true },
   (err) => {
     if (err) {
       console.log(err);
     } else {
       app.listen(3000);
+      console.log('APP RUNNING ON 3000');
     }
   }
 );

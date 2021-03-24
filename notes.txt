@@ -76,7 +76,7 @@ Bind mounts are set up in the run command because they are specific to container
 docker run -v "/absolute/path/to/host/system/mount/folder:/path-to-container-folder-to-map"       ** (notice the paths are wrapped in quotes)
 
 now keep in mind - in the example app from the tutorial, we are copying package.json and running an npm install. Without running npm install locally inside our host system, if we decide to
-bind mount the ENTIRE local app directory, rather than just the local app/public directory (the directory where the html code lives), essentially our local file system will overwrite the entire contents of the containers app directory - which in turn will completely delete the node_modules directory, and will throw an error because the container cannot find express/node 
+bind mount the ENTIRE local app directory, rather than just the local app/public directory (the directory where the html code lives), essentially our local file system will overwrite the entire contents of the containers app directory - which in turn will completely delete the node_modules directory, and will throw an error because the container cannot find express/node
 to spin its app up.... in order to tell docker to IGNORE a specific directory when we bind mount the entire app dir, we need to add one more anonymous volume...
 For bind mounting the entire app/ directory into the container, and adding the anonymous volume to ignore the node_modules dir, use:
 
@@ -91,7 +91,7 @@ The first -v is an anonymous volume which persists the /app/feedback dir in the 
 
 .......................
 
-read-only volumes: 
+read-only volumes:
 
 Used for when we do NOT want the container itself to be able to change any files/folders on the host system, but when the host system should be able to change the files and reflect those changes in the container. By default, docker volumes are read/write. This is very simple, after you docker run and define a volume, you simply append the volume definition with :ro
 
@@ -132,7 +132,30 @@ Environment variables, are available both in the Dockerfile and inside applicati
 Environment variable example - for our node app - inside app.listen(80), we have hardcoded 80 in the app. If you want to pass an environment variable through docker, we can instead access app.listen(process.env.PORT) (where PORT is the actual environment variable name - now we can pass a variable called PORT with any value when we run the container, either in the Dockerfile with ENV or when running the container via --env VARIABLENAME=VALUE (PORT=80)      ----- keep in mind, env variables passed in docker run will override Dockerfile
 
 
+==============================================================
 
+Networking -
+
+if you want to use container to host comms, you don't need a network, you must use the internal domain which is host.docker.internal instead
+of localhost. So for talking to a mongo or any running server/database, etc, in our networking app, instead of mongodb://localhost:27107, you
+will use mongodb://host.docker.internal:27107/swfavorites to hit our locally host running mongodb schema
+
+Container to container comms -
+
+In order to have container to container comms, one way would be to get our mongo container up and running. Once its running, by using docker
+inspect, we can get its ip address. The problem with this is that we are hard coding the ip address of the running mongo container. The ip
+address will change evertime you spin up a new container, so we need a more elegant dynamic solution. In this case, we need to create a docker
+network. Whichever containers you need to be able to talk to each other, you need to first create a new docker network, then whichever containers
+are involved, when you run, add --network <networkName>. Then , instead of using localhost, or host.docker.internal, now we don't need an ip address,
+you can literally just use the name of the container (if you named it use the custom name or use the auto generated name).
+so our mongoose connectiton should be mongodb://mongo-container-name:27107/swfavorites. Since both containers are on the same docker network,
+ip addresses will be auto resolved.
+
+Summary -
+use host.docker.internal to contact the host machine from a container
+
+use container name for container-to-container comms, docker will know how to resolve name to ip dns, as long as any containers communicating
+are on the same docker network. If not using the same network, you can use specific container ip addresses (not elegant).
 
 
 
