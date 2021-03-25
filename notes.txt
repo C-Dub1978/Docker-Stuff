@@ -173,7 +173,10 @@ Dockerize the back end, mid tier, and react front end
 4. mid tier should have live source code, use a bind mount as well as nodemon for realtime node server code updates
 5. for the front end, we need to be able to have live updates for source code
 
-SOLUTIONS for demo:
+SOLUTIONS for demo: SUPER IMPORTANT, WHEN USING DOCKER RUN, PAY ATTENTION TO WHAT DIRECTORY YOU ARE IN BECAUSE OF THE $PWD IN YOUR
+BIND MOUNTS!
+
+DATABASE -
 0. create network docker network create multi-net
 1. create a bind mount for the db container, pointing to the source code /persistence/mongo directory, using:
   docker run -d --rm --name mongo-container -v "$(pwd)/persistence/mongo:/data/db" (its important to run the docker run command from the app src
@@ -181,12 +184,37 @@ SOLUTIONS for demo:
 2. when running the mongo container, in order to create a root user for auth, use
   docker run -d --rm --name mongo-container -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password mongo
 
-1/2:
+3.
 docker run -d --rm \
   --name mongo-cont \
   -v "$PWD/persistence/mongo:/data/db" \
-  -e MONGO_INITDB_ROOT_USERNAME=admin \
-  -e MONGO_INITDB_ROOT_PASSWORD=password \
+  -e MONGO_INITDB_ROOT_USERNAME=chris \
+  -e MONGO_INITDB_ROOT_PASSWORD=secret \
   --network multi-net mongo
 
-3. set up a named volume pointing to the /mid-tier/logs directory
+MID TIER - (make sure to update the mongoose connection to use the username and password above!!!!!)
+1. Since we are networking, in app.js instead of using host.docker.internal for the mongoose connection, use the db container name
+instead. Also spin the container up on the same network as the mongo container so they can talk. We need to publish port 80 on 80
+so that the ui browser code can hit the mid tier.
+docker run -d --rm -p 80:80 --network multi-net --name midtier-cont midtier
+
+2. Set up persistence, for the logs directory. A named volume will suffice
+docker run -d --rm -p 80:80 --network multi-net --name midtier-cont -v logs:/app/logs midtier
+
+3. Set up bind mount for real time code updates by mounting the entire local application code folder
+
+UI/FRONT END -
+1. Since it's a react app, it uses react-scripts to run, similar to the angular dev server. By default it runs port 3000,
+so once you have created the Docker file (node base image, basically copy package.json, npm install, copy all other files, expose 3000,
+ then run npm start),
+you will have to run the container in interactive mode to keep the server up and running. Since we still want to be able
+to use our browser for the front end, we want to publish the port. Since this code runs in the browser, it only knows localhost, so no need
+to put it on the network - the browser would never be able to resolve container ip addresses so just expose the ports. (we will need to
+make sure to publish port 80 on the midtier container so the browser can get to it)
+
+docker run -it --rm --name ui-cont -p 3000:3000 ui
+
+2. we need to persist the app for live code updates, so a bind mount for the entire front end directory is needed. Remember to omit node_modules
+from being overwritten as well
+docker run -it --rm --name ui-cont -p 3000:3000 -v "$PWD/frontend:/app" -v /app/node_modules ui
+
