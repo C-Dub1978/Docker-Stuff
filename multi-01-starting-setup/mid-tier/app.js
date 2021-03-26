@@ -96,6 +96,7 @@ mongoose.connect(
     } else {
       console.log('CONNECTED TO MONGODB');
       app.listen(80);
+      console.log('SUCCESS RUN, LISTENING ON 80');
     }
   }
 );

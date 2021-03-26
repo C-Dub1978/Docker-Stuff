@@ -202,6 +202,8 @@ docker run -d --rm -p 80:80 --network multi-net --name midtier-cont midtier
 docker run -d --rm -p 80:80 --network multi-net --name midtier-cont -v logs:/app/logs midtier
 
 3. Set up bind mount for real time code updates by mounting the entire local application code folder
+docker run -d --rm -p 80:80 --network multi-net --name midtier-cont -v logs:/app/logs -v "$PWD:/app" \
+  -v /app/node_modules midtier
 
 UI/FRONT END -
 1. Since it's a react app, it uses react-scripts to run, similar to the angular dev server. By default it runs port 3000,
