@@ -259,7 +259,10 @@ services: -> *2
     ports: -> *9.5
       - "80:80"
     stdin_open: true -> *9.6
-    tty: true -> *9.7  
+    tty: true -> *9.7
+    depends_on: -> *9.8
+      - serviceName1
+      - serviceName2
 
 volumes: -> *10 (*NOTE ANONYMOUS VOLUMES AND BIND MOUNTS DO NOT NEED TO BE SPECIFIED, JUST NAMED)
   persistence: -> *11
@@ -280,6 +283,7 @@ networks: -> *12
 *9.6 for -it
 *9.7 for -it
 *9.5 specify port mappings
+*9.8 specify a list of services that this service depends on (if dependency fails, container wont start)
 *10 global definition of any named volumes, same indentation as services
 *11 list of any named volumes used, in the above syntax. This is global, so if you reference this in more
   than one service definition, you can share the same volume

@@ -23,7 +23,9 @@ services:
     networks:
       - multi-net
     ports:
-      - "80:80"    
+      - "80:80"
+    depends_on:
+      - mongo  
 
   #front end  
   ui:
@@ -37,7 +39,9 @@ services:
     ports:
       - "3000:3000"
     stdin_open: true
-    tty: true      
+    tty: true
+    depends_on:
+      - mid-tier
 
 volumes:
   persistence:
