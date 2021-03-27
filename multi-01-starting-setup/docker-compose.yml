@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  mongo:
+    image: "mongo"
+    volumes:
+      - persistence:/data/db
+  mid-tier:
+    build: ./mid-tier
+  ui:
+    build: ./frontend

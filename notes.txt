@@ -220,3 +220,45 @@ docker run -it --rm --name ui-cont -p 3000:3000 ui
 from being overwritten as well
 docker run -it --rm --name ui-cont -p 3000:3000 -v "$PWD/frontend:/app" -v /app/node_modules ui
 
+====================================
+
+Docker Compose
+
+Used for both building images, and starting/stopping containers with central config. It does NOT replace
+Dockerfiles, or images/containers, it just makes working with those things easier
+
+Clearly with the last multi container app, having to manage multiple containers and type long run commands
+isn't elegant. With componse, via one or more configuration files, we can spin up lots of containers and
+instead of using docker run, we use docker compose up. 
+This command will check your config file and spin a bunch of containers up easily.
+
+For the compose file (docker-compose.yml), the word 'service' is synonymous with 'container'.
+--rm - by default docker will remove the stopped container
+-d , when you run the docker compose, you can specify this in the command
+
+docker-compose.yml:
+
+version: "some-version" -> *1
+services: -> *2
+  container1: -> (the container name)
+    build: ./some-dir -> *3 (optional)
+    image: 'mongo:latest' (or custom images 'transientcw/node:latest')
+    volumes:
+      - name -> *4
+      - name
+    environment: -> *5
+      SOME_ENV_NAME: value -> *6
+      - SOME_OTHER_NAME=value -> *7
+    env_file: -> *8
+      - ./env
+        
+
+
+*1. The version used to lock in the compose version and its features available
+*2. The containers to define/manage
+*3. Path to the dockerfile (if building) for this container/service
+*4. here you define your volumes, it can be a list on the same indentation level for multiple volumes
+*5. list of environment variables
+*6 syntax 1 for env variables
+*7 syntax 2 for env variables
+*8 path to environment variable file
