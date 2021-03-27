@@ -293,3 +293,48 @@ networks: -> *12
 once you run docker-compose down, it will shut down all containers and remove them (the services in the file);
 Keep in mind - if you want to remove all volumes too, you must specify the -v flag
 docker-compose down -v (be careful, do you really wanna delete volumes?)
+
+Also, if you want to force building on every single docker-compose up, you can use the --build command. By
+default compose will simply first check to see if an image that is specified in the compose file exists
+locally, and if it does, it won't rebuild.... this could bite if any code changes.... so to force:
+docker-compose up --build
+
+================================
+
+"Utility" containers (not an official term)
+
+Docker can be used for so much more than just running a web application... The concept of a utility container
+is that a utility container will spin up and provide an environment, not neccessarily a useable application.
+
+Heres a perfect example. Lets say something, via the command line or even in some external application somewhere
+need to do some simple math. You could literally just run
+docker run --name node-util -it -d node
+What we have just done is created a container that is running in its own terminal mode, but that is
+detached...... It's not doing much but is running the node runtime environment in itself.you could use it
+to do some math
+
+with the following command:
+docker exec <containerName> <command>
+
+lets try initializing an npm repo:
+docker exec fervent_wu npm init
+
+if we do that, it tries to initialize a repo, but is waiting for input, so :
+docker exec -it fervent_wu npm init
+
+It successfully initialized an npm repo, which is useless, but it served a purpose as nothing more than
+a utility container instead of an application container
+
+another syntax of what we just did is
+docker run -it containerName npm init
+
+Lets build an actual useable utility container, it will be used to spin up npm repos, without having
+to actually install npm on the host machine!
+
+FROM node:14-alpine
+
+WORKDIR /util
+
+Very simple, if we bind mount a local folder to the app working dir, we can spin the util container up
+in interactive mode, run an npm init, and it will output the results of the npm init command on to our
+local host!
