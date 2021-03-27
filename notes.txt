@@ -235,6 +235,8 @@ This command will check your config file and spin a bunch of containers up easil
 For the compose file (docker-compose.yml), the word 'service' is synonymous with 'container'.
 --rm - by default docker will remove the stopped container
 -d , when you run the docker compose, you can specify this in the command
+-network , when using compose, any containers within the compose file will be automatically
+  added to a dynamically generated network and will be available
 
 docker-compose.yml:
 
@@ -242,6 +244,7 @@ version: "some-version" -> *1
 services: -> *2
   container1: -> (the container name)
     build: ./some-dir -> *3 (optional)
+    container_name: 'some-name' -> (friendly container name)
     image: 'mongo:latest' (or custom images 'transientcw/node:latest')
     volumes:
       - name -> *4
@@ -251,6 +254,17 @@ services: -> *2
       - SOME_OTHER_NAME=value -> *7
     env_file: -> *8
       - ./env
+    networks: -> *9
+      - multi-net
+    ports: -> *9.5
+      - "80:80"
+    stdin_open: true -> *9.6
+    tty: true -> *9.7  
+
+volumes: -> *10 (*NOTE ANONYMOUS VOLUMES AND BIND MOUNTS DO NOT NEED TO BE SPECIFIED, JUST NAMED)
+  persistence: -> *11
+networks: -> *12
+  multi-net: -> *13  
         
 
 
@@ -262,3 +276,16 @@ services: -> *2
 *6 syntax 1 for env variables
 *7 syntax 2 for env variables
 *8 path to environment variable file
+*9 option to specify a network to put this container on (assuming it has been created)
+*9.6 for -it
+*9.7 for -it
+*9.5 specify port mappings
+*10 global definition of any named volumes, same indentation as services
+*11 list of any named volumes used, in the above syntax. This is global, so if you reference this in more
+  than one service definition, you can share the same volume
+*12 global definition of any networks used, same indentation as services
+*13 list of any networks used, in the above syntax
+
+once you run docker-compose down, it will shut down all containers and remove them (the services in the file);
+Keep in mind - if you want to remove all volumes too, you must specify the -v flag
+docker-compose down -v (be careful, do you really wanna delete volumes?)

@@ -1,10 +1,46 @@
 version: "3.8"
 services:
+  #db/back end
   mongo:
     image: "mongo"
+    container_name: "mongo-cont"
     volumes:
       - persistence:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: chris
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    networks:
+      - multi-net
+  
+  #mid tier container
   mid-tier:
-    build: ./mid-tier
+    build: ./mid-tier/
+    container_name: "midtier-cont"
+    volumes:
+      - logs:/app/logs
+      - ./mid-tier:/app
+      - /app/node_modules
+    networks:
+      - multi-net
+    ports:
+      - "80:80"    
+
+  #front end  
   ui:
     build: ./frontend
+    container_name: "ui-cont"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - multi-net
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true      
+
+volumes:
+  persistence:
+  logs:  
+networks:
+  multi-net:    
