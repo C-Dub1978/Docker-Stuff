@@ -338,3 +338,65 @@ WORKDIR /util
 Very simple, if we bind mount a local folder to the app working dir, we can spin the util container up
 in interactive mode, run an npm init, and it will output the results of the npm init command on to our
 local host!
+
+docker run -d -it --rm --name utility-cont -v "$PWD/npm:/util" imageName
+
+then execute
+docker exec -it utility-cont npm init
+
+Since we bind mounted to the npm directory, the above command will spit out a package.json after it finished the npm
+init
+
+ENTRYPOINT -
+adding the ENTRYPOINT command in your docker file, is basically going to append itself to the front of whatever
+command you pass to execute in your docker run command -
+for example:
+
+FROM node
+
+WORKDIR /app
+
+ENTRYPOINT ["npm"]
+
+docker run -it -d containerName run start
+
+with the ENTRYPOINT command, run start will be appended with the entrypoint variable, effectively making it:
+docker run -it -d containerName npm run start
+
+This is cool because it can help prevent screwing up all kinds of files - the ONLY variables you can pass to the docker
+run command with the above entrypoint are npm commands, install, init, version, etc. If you try to run some other executable
+command, such as rm -rf, its not going to work, because "npm rm -rf" isnt a valid npm command and will fail. So using
+an entrypoint is a way of securing executable commands, especially when you have a bind mount that can fuck with the host
+file system, not good!
+
+To convert the above to docker compose:
+
+version: "3.8"
+services:
+  npm-cont:
+    container_name: "npm-cont"
+    build: ./
+    volumes:
+      - ./npm:/util
+    stdin_open: true
+    tty: true
+
+the issue is that in our dockerfile for this, we have an entrypoint ["npm"]..... So if we try to docker-compose up this,
+it will basically just be trying to execute "npm", which is going to fail, youll just get an npm error saying, what are
+you trying to do?
+
+docker-compose has a "run" command, used for containers that arent yet up.
+
+docker-compose run <serviceName> <command to be appended after the entrypoint>
+so in our case, since I named our service/container npm-cont:
+
+docker-compose run npm-cont init
+
+then from there to install express, we can do
+docker-compose run npm-cont install --save express
+
+keep in mind, even though docker-compose up will automagically remove its containers when they shut down, with
+docker-compose run, it will leave the container lingering after it shuts down. All we have to do is add --rm to
+docker-compose run
+
+docker-compose run --rm npm-cont install

@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  npm-cont:
+    container_name: "npm-cont"
+    build: ./
+    volumes:
+      - ./npm:/util
+    stdin_open: true
+    tty: true
