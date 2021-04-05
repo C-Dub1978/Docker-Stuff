@@ -400,3 +400,14 @@ docker-compose run, it will leave the container lingering after it shuts down. A
 docker-compose run
 
 docker-compose run --rm npm-cont install
+
+=======================================================================
+
+MULTI-CONTAINER, COMPLEX PHP/LARAVEL SETUP
+
+We need a whole bunch of stuff. One example of a utility container will be for compose, which is the php equivalent of
+node's npm, a package manager system. Since this is going to be a complex setup, well use docker compose, and will
+start with the compose utility container!
+
+
+

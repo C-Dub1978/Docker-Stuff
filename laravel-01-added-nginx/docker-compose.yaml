@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  # server, mid tier code/api
+  server:
+    container_name: "server-cont"
+    image: "nginx:stable-alpine"
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  # php itself with laravel
+  php:
+    container_name: "php-cont"
+    build:
+      context: ./docker-files
+      dockerfile: Dockerfile-php
+    volumes:
+      - ./src:/var/www/html:delegated # delegated means laravel will be writing, but not in realtime, it will write in batches
+      # mysql
+  mysql:
+    container_name: "mysql-cont"
+    image: ""
+  # utility container for compose package manager
+  compose:
+    container_name: "compose-cont"
+  npm:
+    container_name: "npm-cont"
+  artisan:
+    container_name: "artisan-cont"
