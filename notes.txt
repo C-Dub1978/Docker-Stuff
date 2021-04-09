@@ -409,5 +409,11 @@ We need a whole bunch of stuff. One example of a utility container will be for c
 node's npm, a package manager system. Since this is going to be a complex setup, well use docker compose, and will
 start with the compose utility container!
 
+(reference the docker-compose file in laravel-01-added-nginx)
 
+first thing to do is to build an actual usable laravel app, using our composer utility container
+docker-compose run --rm composer create-project laravel/laravel .
+
+That will fill the src directory with a fully bootstrapped app, which is bind mounted into both the
+nginx and php containers
 
