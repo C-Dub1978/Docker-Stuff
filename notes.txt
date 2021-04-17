@@ -442,6 +442,22 @@ build:
 
 ==================================
 
+DEPLOYMENTS!!!!!!!
 
+================================
+
+Bind Mounts, dev vs prod:
+
+In development
+- containers should encapsulate the runtime environment but not neccessarily the code
+- use bind mounts for local dev, since you have control of folder structures
+- allows for instant updates without restarting container
+
+In prod
+- containers should be standalone and single source of truth, they should not have any
+  source code
+- Use COPY commands instead of bind mounts, so that your data is inside the container, not bind
+  mounted
+-
 
 
