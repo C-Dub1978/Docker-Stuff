@@ -417,3 +417,31 @@ docker-compose run --rm composer create-project laravel/laravel .
 That will fill the src directory with a fully bootstrapped app, which is bind mounted into both the
 nginx and php containers
 
+As for running everything, since we know that we need both php and mysql to run the server container,
+its good to add both php and mysql services to the 'depends_on' array of the server service
+then when we run docker-compse up -d server , docker will spin up both php and mysql first before server
+
+Once the 3 app containers are running, we can use both the npm and the artisan utility containers
+docker-compose run --rm artisan migrate (this will run database migration scripts, for example);
+
+Lastly, think twice with bind mounts, they are good for local development but not deployments. Look into
+the dockerfile and see how we added a Dockerfile-nginx and copied stuff in instead of bind mounting.
+
+**** Remember - build contexts in docker-compose files.... the context is more than just pointing to where
+the dockerfile is located - the context sets the actual path of where everything inside the dockerfile
+is copying from, etc.... so at the same level of docker-compose.yml, where we have our src, nginx, and env
+directories - this is where the dockerfile will be copying from and the path where its context is set..
+from within the dockerfile itself, you cant do stuff like COPY ../src . - docker will complain about
+contexts.. so essentially set the context to the root of where your dockerfile operations will
+occur, and then point to the dockerfile from there even if its deeply nested in the folder stucture
+
+build:
+  - context: . ( this is where /src, /nginx, /env are at so the dockerfile will be using these dirs)
+  - dockerfile: ./docker-files/Dockerfile-xxx ( this could be any relative path - ../../somedir/Dockerfile-xx)
+                                              ( or it could go down ./some/dir/files/Dockerfile-xx) 
+
+==================================
+
+
+
+
